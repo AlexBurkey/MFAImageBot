@@ -7,27 +7,22 @@ import requests
 from string import Template
 from dotenv import load_dotenv
 
-# Provide a descriptive user-agent string. Explain what your bot does, reference
-# yourself as the author, and offer some preferred contact method. A reddit
-# username is sufficient, but nothing wrong with adding an email in here.
+#References praw-ini file
 UA = 'MFAImageBot'
-HELP_TEXT = """
-Usage: I respond to comments starting with `!MFAImageBot`.  \n
-`!MFAImageBot help`: Print this help message.  \n
-`!MFAImageBot link <album-link> <number>`: Attempts to directly link the <number> image from <album-link>  \n
-`!MFAImageBot link <number>`: Attempts to directly link the <number> image from the album in the submission  \n
-"""
-TODO_TEXT = """
-Sorry, this function has not been implemented yet.\n\n
-"""
+HELP_TEXT = ("Usage: I respond to comments starting with `!MFAImageBot`.  \n"
+                "`!MFAImageBot help`: Print this help message.  \n"
+                "`!MFAImageBot link <album-link> <number>`: Attempts to directly link the <number> image from <album-link>  \n"
+                "`!MFAImageBot link <number>`: Attempts to directly link the <number> image from the album in the submission  \n"
+            )
+TODO_TEXT = "Sorry, this function has not been implemented yet.\n\n"
 
 IMGUR_ALBUM_API_URL = 'https://api.imgur.com/3/album/${album_hash}/images'
 IMGUR_GALLERY_API_URL = f''
 DIRECT_LINK_TEMPLATE = '[#${index}](${image_link})  \nImage number ${index} from album ${album_link}'
-subreddit_name = "mybottestenvironment"
+SUBREDDIT_NAME = "mybottestenvironment"
 #subreddit_name = "goodyearwelt"
-bot_batsignal = '!MFAImageBot'
-tail = "\n\nI am a bot."
+BATSIGNAL = '!MFAImageBot'
+TAIL = "\n\nI am a bot."
 
 def check_condition(c):
     """
@@ -36,13 +31,14 @@ def check_condition(c):
     If it does, we want to try and process the comment and respond to it.
     """
     text = c.body
-    return text.startswith(bot_batsignal)
+    return text.startswith(BATSIGNAL)
 
 def bot_action(c, verbose=True, respond=False):
     response_text = 'bot_action text'
-    #print(f"Responding to comment: {c}")
     tokens = c.body.split()
     # If there's a command in the comment parse and react
+    # Break this out into a "parse_comment_tokens" function
+    #   Alternatively "set_response_text" or something
     if len(tokens) > 1:
         if tokens[1].lower() == 'help':
             print("Help path")
@@ -62,9 +58,9 @@ def bot_action(c, verbose=True, respond=False):
     # Otherwise print the help text
     else:
         response_text = HELP_TEXT
-    if respond:
-        c.reply(response_text + tail)
     
+    if respond:
+        c.reply(response_text + TAIL)
     # Logging
     if verbose:
         tokens = c.body.encode("UTF-8").split()
@@ -93,9 +89,9 @@ def get_direct_image_link(comment, tokens):
         print(f"Oops, {imgur_url} is not a valid imgur link!") 
     r = None
     if link_type_and_id is not None:
+        # Each type of Imgur resource has its own endpoint: album vs gallery
+        #   so we send requests separately
         if link_type_and_id['type'] == 'album':
-            # send request to album endpoint
-            # TODO: Set client ID and secret for Imgur API?
             s = Template(IMGUR_ALBUM_API_URL)
             url = s.substitute(album_hash=link_type_and_id['id'])
             client_id = os.getenv('IMGUR_CLIENT_ID')
@@ -108,7 +104,10 @@ def get_direct_image_link(comment, tokens):
         else: 
             return None
 
-    # Verify that the index is an integer and in-bounds
+    # TODO: Verify that the index is an integer and in-bounds
+    # TODO: The structure of galleries and albums is different
+    # Gallery: g_response.data.images[index].link
+    # Album: a_response.data[index].link
     if r is not None and r.status_code == 200:
         # happy path for now
         r_json = r.json()
@@ -161,11 +160,11 @@ def parse_imgur_url(url):
 
 if __name__ == '__main__':
     r = praw.Reddit(UA)
-    load_dotenv()
+    load_dotenv()  # Used for imgur auth
 
-    for comment in r.subreddit(subreddit_name).stream.comments():
+    for comment in r.subreddit(SUBREDDIT_NAME).stream.comments():
         if check_condition(comment):
-            print(f"Comment hash: {comment}")
+            print(f"Comment hash: {comment}")  # TODO: offload this and check the comment before responding
             # set 'respond=True' to activate bot responses. Must be logged in.
             # TODO: Set respond bool as CLI input value
             bot_action(comment, respond=False)
