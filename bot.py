@@ -3,6 +3,7 @@ import re
 import os
 import praw
 import json
+import sqlite3
 import requests
 from string import Template
 from dotenv import load_dotenv
@@ -173,9 +174,19 @@ def parse_imgur_url(url):
                 'image',
     }
 
+def db_setup(db_file):
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS comments (
+        comment_hash  TEXT    NOT NULL,
+        has_responded INTEGER DEFAULT 0 CHECK(has_responded == 0 OR has_responded == 1),
+        response_type TEXT    DEFAULT NULL
+    )''')
+
 if __name__ == '__main__':
     r = praw.Reddit(UA)
     load_dotenv()  # Used for imgur auth
+    db_setup('dbs/test.db')
 
     for comment in r.subreddit(SUBREDDIT_NAME).stream.comments():
         if check_condition(comment):
