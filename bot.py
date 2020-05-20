@@ -22,7 +22,10 @@ DIRECT_LINK_TEMPLATE = '[#${index}](${image_link})  \nImage number ${index} from
 SUBREDDIT_NAME = "mybottestenvironment"
 #subreddit_name = "goodyearwelt"
 BATSIGNAL = '!MFAImageBot'
-TAIL = "\n\nI am a bot."
+TAIL = ("\n\n---\nI am a bot! If you've found a bug you can open an issue "
+        "[here.](https://github.com/AlexBurkey/MFAImageBot/issues/new?template=bug_report.md)  \n"
+        "If you have an idea for a feature, you can submit the idea "
+        "[here](https://github.com/AlexBurkey/MFAImageBot/issues/new?template=feature_request.md)")
 
 def check_condition(c):
     """
@@ -45,13 +48,19 @@ def bot_action(c, verbose=True, respond=False):
             response_text = HELP_TEXT
         elif tokens[1].lower() == 'link':
             print("Link path")
-            # TODO: Figure out what to do if we get a failure
-            link_index_album = get_direct_image_link(c, tokens)
-            image_link = link_index_album['image_link']
-            index = link_index_album['index']
-            album_link = link_index_album['album_link']
-            s = Template(DIRECT_LINK_TEMPLATE)
-            response_text = s.substitute(index=index, image_link=image_link, album_link=album_link)
+            # TODO: Wrapping the whole thing in a try-catch is a code smell
+            try: 
+                link_index_album = get_direct_image_link(c, tokens)
+                image_link = link_index_album['image_link']
+                index = link_index_album['index']
+                album_link = link_index_album['album_link']
+                s = Template(DIRECT_LINK_TEMPLATE)
+                response_text = s.substitute(index=index, image_link=image_link, album_link=album_link)
+            except ValueError as e:
+                print(str(e))
+                response_text = str(e) + TAIL
+            except IndexError:
+                response_text = 'Sorry that index is out of bounds.' + TAIL
         else:
             print("Fall through path")
             response_text = TODO_TEXT + HELP_TEXT
@@ -78,15 +87,19 @@ def get_direct_image_link(comment, tokens):
     Gets the direct link to an image from an imgur album based on index.
     Tokens should look like: ['!MFAImageBot', 'link', '<imgur-link>', '<index>']
     """
+    if len(tokens) < 4:
+        print('Not enough parameters for `link` command.')
+        raise ValueError('Not enough parameters for `link` command.')
     imgur_url = tokens[2]
-    index = tokens[3]
     image_link = ''
-    link_type_and_id = None
-
+    # Wrap this in a try-except because I don't like the error message
     try:
-        link_type_and_id = parse_imgur_url(imgur_url)
+        index = int(tokens[3])
     except ValueError:
-        print(f"Oops, {imgur_url} is not a valid imgur link!") 
+        raise ValueError(f'Sorry, "{tokens[3]}" doesn\'t look like an integer to me.')
+
+    # This raises an exception and is fine
+    link_type_and_id = parse_imgur_url(imgur_url)
     r = None
     if link_type_and_id is not None:
         # Each type of Imgur resource has its own endpoint: album vs gallery
@@ -111,11 +124,13 @@ def get_direct_image_link(comment, tokens):
     if r is not None and r.status_code == 200:
         # happy path for now
         r_json = r.json()
-        image_link = r_json['data'][int(index)]['link']
+        image_link = r_json['data'][index]['link']
         print(f'Image link: {image_link}')
-
-    # Return direct link
-    return {'image_link': image_link, 'index': index, 'album_link': imgur_url}
+        return {'image_link': image_link, 'index': index, 'album_link': imgur_url}
+    else:  # Status code not 200
+        print(f'Status Code: {r.status_code}')
+        raise ValueError(f'Sorry, {imgur_url} is probably not an existing imgur album.')
+    
 
 # Lol yanked this whole thing from SE
 # https://codereview.stackexchange.com/questions/204316/imgur-url-parser
@@ -150,7 +165,7 @@ def parse_imgur_url(url):
         url
     )
     if not match:
-        raise ValueError('"{}" is not a valid imgur URL'.format(url))
+        raise ValueError('Sorry, "{}" is not a valid imgur URL'.format(url))
     return {
         'id': match.group('id'),
         'type': 'album' if match.group('album') else
