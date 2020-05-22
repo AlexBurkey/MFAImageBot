@@ -10,12 +10,11 @@ from dotenv import load_dotenv
 
 #References praw-ini file
 UA = 'MFAImageBot'
-DB_FILE = 'dbs/test.db'
+DB_FILE = 'test.db'
 HELP_TEXT = ("Usage: I respond to comments starting with `!MFAImageBot`.  \n"
                 "`!MFAImageBot help`: Print this help message.  \n"
                 "`!MFAImageBot link <album-link> <number>`: Attempts to directly link the <number> image from <album-link>  \n"
-                "`!MFAImageBot link <number>`: Attempts to directly link the <number> image from the album in the submission  \n"
-            )
+                "`!MFAImageBot link <number>`: Attempts to directly link the <number> image from the album in the submission  \n")
 TODO_TEXT = "Sorry, this function has not been implemented yet.\n\n"
 
 IMGUR_ALBUM_API_URL = 'https://api.imgur.com/3/album/${album_hash}/images'
