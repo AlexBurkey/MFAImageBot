@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 UA = 'MFAImageBot'
 DB_FILE = 'test.db'
 BATSIGNAL = '!MFAImageBot'
-SUBREDDIT_NAME = "mybottestenvironment"
+SUBREDDIT_NAME = "malefashionadvice"
 IMGUR_ALBUM_API_URL = 'https://api.imgur.com/3/album/${album_hash}/images'
 IMGUR_GALLERY_API_URL = f''
 DIRECT_LINK_TEMPLATE = '[#${index}](${image_link})  \nImage number ${index} from album ${album_link}'
@@ -118,11 +118,11 @@ def get_direct_image_link(comment, tokens):
     imgur_url = None
     index = None
     image_link = ''
-    if len(tokens) == 4 and tokens[1] == 'link':
+    if len(tokens) >= 4 and tokens[1] == 'link':
         # Correct num parameters for album provided
         imgur_url = tokens[2]
         index = get_index_from_string(tokens[3])
-    elif len(tokens) == 3 and tokens[1] =='op':
+    elif len(tokens) >= 3 and tokens[1] =='op':
         # Correct num parametrs for album in OP
         # This should generate a 404 or something if the post isn't a link to imgur.
         imgur_url = comment.submission.url
