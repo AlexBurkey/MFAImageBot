@@ -10,18 +10,18 @@ from dotenv import load_dotenv
 
 #References praw-ini file
 UA = 'MFAImageBot'
-DB_FILE = 'test.db'
+DB_FILE = 'mfa.db'
 HELP_TEXT = ("Usage: I respond to comments starting with `!MFAImageBot`.  \n"
                 "`!MFAImageBot help`: Print this help message.  \n"
                 "`!MFAImageBot link <album-link> <number>`: Attempts to directly link the <number> image from <album-link>  \n"
-                "`!MFAImageBot link <number>`: Attempts to directly link the <number> image from the album in the submission  \n")
+                #"`!MFAImageBot link <number>`: Attempts to directly link the <number> image from the album in the submission  \n"
+                )
 TODO_TEXT = "Sorry, this function has not been implemented yet.\n\n"
 
 IMGUR_ALBUM_API_URL = 'https://api.imgur.com/3/album/${album_hash}/images'
 IMGUR_GALLERY_API_URL = f''
 DIRECT_LINK_TEMPLATE = '[#${index}](${image_link})  \nImage number ${index} from album ${album_link}'
-SUBREDDIT_NAME = "mybottestenvironment"
-#subreddit_name = "goodyearwelt"
+SUBREDDIT_NAME = "malefashionadvice"
 BATSIGNAL = '!MFAImageBot'
 TAIL = ("\n\n---\nI am a bot! If you've found a bug you can open an issue "
         "[here.](https://github.com/AlexBurkey/MFAImageBot/issues/new?template=bug_report.md)  \n"
@@ -84,9 +84,11 @@ def bot_action(c, verbose=True, respond=False):
     
     if respond:
         c.reply(response_text + TAIL)
-    # Add comment to DB
 
-    db_obj = {'hash': c.id, 'has_responded': True, 'response_type': response_type}
+    # Adding everything to the DB
+    # TODO: Make "responded" more dependent on whether we were actually able to respond to the comment.
+    #   and not just what the bot is being told to do.
+    db_obj = {'hash': c.id, 'has_responded': respond, 'response_type': response_type}
     print(f"Hash: {db_obj['hash']}")
     print(f"Has responded: {db_obj['has_responded']}")
     print(f"Response type: {db_obj['response_type']}")
