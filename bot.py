@@ -11,18 +11,18 @@ from dotenv import load_dotenv
 #References praw-ini file
 UA = 'MFAImageBot'
 DB_FILE = 'test.db'
+BATSIGNAL = '!MFAImageBot'
+SUBREDDIT_NAME = "mybottestenvironment"
+IMGUR_ALBUM_API_URL = 'https://api.imgur.com/3/album/${album_hash}/images'
+IMGUR_GALLERY_API_URL = f''
+DIRECT_LINK_TEMPLATE = '[#${index}](${image_link})  \nImage number ${index} from album ${album_link}'
+
+TODO_TEXT = "Sorry, this function has not been implemented yet.\n\n"
 HELP_TEXT = ("Usage: I respond to comments starting with `!MFAImageBot`.  \n"
                 "`!MFAImageBot help`: Print this help message.  \n"
                 "`!MFAImageBot link <album-link> <number>`: Attempts to directly link the <number> image from <album-link>  \n"
                 "`!MFAImageBot op <number>`: Attempts to directly link the <number> image from the album in the submission  \n"
                 )
-TODO_TEXT = "Sorry, this function has not been implemented yet.\n\n"
-
-IMGUR_ALBUM_API_URL = 'https://api.imgur.com/3/album/${album_hash}/images'
-IMGUR_GALLERY_API_URL = f''
-DIRECT_LINK_TEMPLATE = '[#${index}](${image_link})  \nImage number ${index} from album ${album_link}'
-SUBREDDIT_NAME = "mybottestenvironment"
-BATSIGNAL = '!MFAImageBot'
 TAIL = ("\n\n---\nI am a bot! If you've found a bug you can open an issue "
         "[here.](https://github.com/AlexBurkey/MFAImageBot/issues/new?template=bug_report.md)  \n"
         "If you have an idea for a feature, you can submit the idea "
@@ -42,8 +42,9 @@ def check_has_responded(comment):
     fetchone() is not None --> a row exists
     a row exists iff hash is in DB AND we have responded to it.
     """
-    # TODO: Using 0 (false) for has_responded will probably be a better query 
+    # TODONE: Using 0 (false) for has_responded will probably be a better query 
     #       since the DB should really only keep comments we have responded to
+    # UPDATE: We keep all comments in the DB, but update the value if responded.
     conn = sqlite3.connect(DB_FILE)
     cur = conn.cursor()
     cur.execute('SELECT * FROM comments WHERE comment_hash=:hash AND has_responded=1', {"hash": comment.id})
@@ -116,6 +117,7 @@ def get_direct_image_link(comment, tokens):
     """
     imgur_url = None
     index = None
+    image_link = ''
     if len(tokens) == 4:
         # Correct num parameters for album provided
         imgur_url = tokens[2]
@@ -128,11 +130,8 @@ def get_direct_image_link(comment, tokens):
     else:
         print('Looks like a malformed `link` or `op` command')
         raise ValueError(f'Malformed `{tokens[1]}`` command.')
-    
-    image_link = ''
-    
 
-    # This raises an exception and is fine
+    # This can raise an exception which is fine
     link_type_and_id = parse_imgur_url(imgur_url)
     r = None
     if link_type_and_id is not None:
@@ -147,11 +146,11 @@ def get_direct_image_link(comment, tokens):
             r = requests.get(url, headers=headers)
         elif link_type_and_id['type'] == 'gallery':
             # send request to gallery endpoint
-            return None
+            # TODO lol
+            raise ValueError('Sorry, imgur "galleries" are not implemented yet.')
         else: 
-            return None
+            raise ValueError('Sorry, that imgur resource hasn\'t been implemented yet.')
 
-    # TODO: Verify that the index is an integer and in-bounds
     # TODO: The structure of galleries and albums is different
     # Gallery: g_response.data.images[index].link
     # Album: a_response.data[index].link
@@ -251,6 +250,5 @@ if __name__ == '__main__':
     for comment in r.subreddit(SUBREDDIT_NAME).stream.comments():
         if check_batsignal(comment) and not check_has_responded(comment):
             print(f"Comment hash: {comment}") 
-            # set 'respond=True' to activate bot responses. Must be logged in.
             # TODO: Set respond bool as CLI input value
             bot_action(comment, respond=False)
