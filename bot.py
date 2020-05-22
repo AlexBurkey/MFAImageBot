@@ -157,7 +157,7 @@ def get_direct_image_link(comment, tokens):
     if r is not None and r.status_code == 200:
         # happy path for now
         r_json = r.json()
-        image_link = r_json['data'][index]['link']
+        image_link = r_json['data'][index-1]['link']
         print(f'Image link: {image_link}')
         return {'image_link': image_link, 'index': index, 'album_link': imgur_url}
     else:  # Status code not 200
