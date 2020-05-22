@@ -10,19 +10,19 @@ from dotenv import load_dotenv
 
 #References praw-ini file
 UA = 'MFAImageBot'
-DB_FILE = 'mfa.db'
-HELP_TEXT = ("Usage: I respond to comments starting with `!MFAImageBot`.  \n"
-                "`!MFAImageBot help`: Print this help message.  \n"
-                "`!MFAImageBot link <album-link> <number>`: Attempts to directly link the <number> image from <album-link>  \n"
-                #"`!MFAImageBot link <number>`: Attempts to directly link the <number> image from the album in the submission  \n"
-                )
-TODO_TEXT = "Sorry, this function has not been implemented yet.\n\n"
-
+DB_FILE = 'test.db'
+BATSIGNAL = '!MFAImageBot'
+SUBREDDIT_NAME = "mybottestenvironment"
 IMGUR_ALBUM_API_URL = 'https://api.imgur.com/3/album/${album_hash}/images'
 IMGUR_GALLERY_API_URL = f''
 DIRECT_LINK_TEMPLATE = '[#${index}](${image_link})  \nImage number ${index} from album ${album_link}'
-SUBREDDIT_NAME = "malefashionadvice"
-BATSIGNAL = '!MFAImageBot'
+
+TODO_TEXT = "Sorry, this function has not been implemented yet.\n\n"
+HELP_TEXT = ("Usage: I respond to comments starting with `!MFAImageBot`.  \n"
+                "`!MFAImageBot help`: Print this help message.  \n"
+                "`!MFAImageBot link <album-link> <number>`: Attempts to directly link the <number> image from <album-link>  \n"
+                "`!MFAImageBot op <number>`: Attempts to directly link the <number> image from the album in the submission  \n"
+                )
 TAIL = ("\n\n---\nI am a bot! If you've found a bug you can open an issue "
         "[here.](https://github.com/AlexBurkey/MFAImageBot/issues/new?template=bug_report.md)  \n"
         "If you have an idea for a feature, you can submit the idea "
@@ -42,8 +42,9 @@ def check_has_responded(comment):
     fetchone() is not None --> a row exists
     a row exists iff hash is in DB AND we have responded to it.
     """
-    # TODO: Using 0 (false) for has_responded will probably be a better query 
+    # TODONE: Using 0 (false) for has_responded will probably be a better query 
     #       since the DB should really only keep comments we have responded to
+    # UPDATE: We keep all comments in the DB, but update the value if responded.
     conn = sqlite3.connect(DB_FILE)
     cur = conn.cursor()
     cur.execute('SELECT * FROM comments WHERE comment_hash=:hash AND has_responded=1', {"hash": comment.id})
@@ -59,13 +60,13 @@ def bot_action(c, verbose=True, respond=False):
     # Break this out into a "parse_comment_tokens" function
     #   Alternatively "set_response_text" or something
     if len(tokens) > 1:
-        response_type = tokens[1]
-        if tokens[1].lower() == 'help':
+        response_type = tokens[1].lower()
+        if response_type == 'help':
             response_text = HELP_TEXT
-        elif tokens[1].lower() == 'link':
+        elif response_type == 'link' or response_type == 'op':
             # TODO: Wrapping the whole thing in a try-catch is a code smell
             try: 
-                link_index_album = get_direct_image_link(c, tokens)
+                link_index_album = get_direct_image_link(c, tokens[:4])
                 image_link = link_index_album['image_link']
                 index = link_index_album['index']
                 album_link = link_index_album['album_link']
@@ -109,20 +110,28 @@ def bot_action(c, verbose=True, respond=False):
 def get_direct_image_link(comment, tokens):
     """
     Gets the direct link to an image from an imgur album based on index.
-    Tokens should look like: ['!MFAImageBot', 'link', '<imgur-link>', '<index>']
+    Tokens should look like: 
+    ['!MFAImageBot', 'link', '<imgur-link>', '<index>']
+    or
+    ['!MFAImageBot', 'op', '<index>']
     """
-    if len(tokens) < 4:
-        print('Not enough parameters for `link` command.')
-        raise ValueError('Not enough parameters for `link` command.')
-    imgur_url = tokens[2]
+    imgur_url = None
+    index = None
     image_link = ''
-    # Wrap this in a try-except because I don't like the error message
-    try:
-        index = int(tokens[3])
-    except ValueError:
-        raise ValueError(f'Sorry, "{tokens[3]}" doesn\'t look like an integer to me.')
+    if len(tokens) == 4:
+        # Correct num parameters for album provided
+        imgur_url = tokens[2]
+        index = get_index_from_string(tokens[3])
+    elif len(tokens) == 3:
+        # Correct num parametrs for album in OP
+        # This should generate a 404 or something if the post isn't a link to imgur.
+        imgur_url = comment.submission.url
+        index = get_index_from_string(tokens[2])
+    else:
+        print('Looks like a malformed `link` or `op` command')
+        raise ValueError(f'Malformed `{tokens[1]}`` command.')
 
-    # This raises an exception and is fine
+    # This can raise an exception which is fine
     link_type_and_id = parse_imgur_url(imgur_url)
     r = None
     if link_type_and_id is not None:
@@ -137,11 +146,11 @@ def get_direct_image_link(comment, tokens):
             r = requests.get(url, headers=headers)
         elif link_type_and_id['type'] == 'gallery':
             # send request to gallery endpoint
-            return None
+            # TODO lol
+            raise ValueError('Sorry, imgur "galleries" are not implemented yet.')
         else: 
-            return None
+            raise ValueError('Sorry, that imgur resource hasn\'t been implemented yet.')
 
-    # TODO: Verify that the index is an integer and in-bounds
     # TODO: The structure of galleries and albums is different
     # Gallery: g_response.data.images[index].link
     # Album: a_response.data[index].link
@@ -156,6 +165,16 @@ def get_direct_image_link(comment, tokens):
         print(f'Status Code: {r.status_code}')
         raise ValueError(f'Sorry, {imgur_url} is probably not an existing imgur album.')
     
+def get_index_from_string(str):
+    """
+    Wrap this in a try-except because I don't like the error message
+    """
+    index = None
+    try:
+        index = int(str)
+    except ValueError:
+        raise ValueError(f'Sorry, "{str}" doesn\'t look like an integer to me.')
+    return index
 
 # Lol yanked this whole thing from SE
 # https://codereview.stackexchange.com/questions/204316/imgur-url-parser
@@ -201,6 +220,7 @@ def parse_imgur_url(url):
 def add_comment_to_db(db_dict):
     conn = sqlite3.connect(DB_FILE)
     cur = conn.cursor()
+    # https://stackoverflow.com/questions/19337029/insert-if-not-exists-statement-in-sqlite
     cur.execute('INSERT OR REPLACE INTO comments VALUES (:hash, :has_responded, :response_type)', db_dict)
     conn.commit()
     conn.close()
@@ -230,6 +250,5 @@ if __name__ == '__main__':
     for comment in r.subreddit(SUBREDDIT_NAME).stream.comments():
         if check_batsignal(comment) and not check_has_responded(comment):
             print(f"Comment hash: {comment}") 
-            # set 'respond=True' to activate bot responses. Must be logged in.
             # TODO: Set respond bool as CLI input value
             bot_action(comment, respond=False)
