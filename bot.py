@@ -226,9 +226,8 @@ if __name__ == '__main__':
     # TODO: verify that the db path is valid. 
     #   A single file is fine but dirs are not created if they don't exist
     db_setup(DB_FILE)  # TODO: set db file path as CLI parameter
-
+    print("Looking for comments...")
     for comment in r.subreddit(SUBREDDIT_NAME).stream.comments():
-        print("Looking for comments...")
         if check_batsignal(comment) and not check_has_responded(comment):
             print(f"Comment hash: {comment}") 
             # set 'respond=True' to activate bot responses. Must be logged in.
