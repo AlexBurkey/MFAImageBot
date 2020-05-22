@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 
 #References praw-ini file
 UA = 'MFAImageBot'
+DB_FILE = 'dbs/test.db'
 HELP_TEXT = ("Usage: I respond to comments starting with `!MFAImageBot`.  \n"
                 "`!MFAImageBot help`: Print this help message.  \n"
                 "`!MFAImageBot link <album-link> <number>`: Attempts to directly link the <number> image from <album-link>  \n"
@@ -28,27 +29,41 @@ TAIL = ("\n\n---\nI am a bot! If you've found a bug you can open an issue "
         "If you have an idea for a feature, you can submit the idea "
         "[here](https://github.com/AlexBurkey/MFAImageBot/issues/new?template=feature_request.md)")
 
-def check_condition(c):
+def check_batsignal(comment):
     """
-    Checks to see if the text body of a comment starts with the bat signal.
-
-    If it does, we want to try and process the comment and respond to it.
+    Returns True if the comment body starts with the batsignal '!MFAImageBot'. Otherwise False.
     """
-    text = c.body
+    text = comment.body
     return text.startswith(BATSIGNAL)
+
+def check_has_responded(comment):
+    """
+    Returns True if the comment hash is in the database and we've already responded to it. Otherwise False.
+
+    fetchone() is not None --> a row exists
+    a row exists iff hash is in DB AND we have responded to it.
+    """
+    # TODO: Using 0 (false) for has_responded will probably be a better query 
+    #       since the DB should really only keep comments we have responded to
+    conn = sqlite3.connect(DB_FILE)
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM comments WHERE comment_hash=:hash AND has_responded=1', {"hash": comment.id})
+    val = (cur.fetchone() is not None)
+    conn.close()
+    return val
 
 def bot_action(c, verbose=True, respond=False):
     response_text = 'bot_action text'
+    response_type = None
     tokens = c.body.split()
     # If there's a command in the comment parse and react
     # Break this out into a "parse_comment_tokens" function
     #   Alternatively "set_response_text" or something
     if len(tokens) > 1:
+        response_type = tokens[1]
         if tokens[1].lower() == 'help':
-            print("Help path")
             response_text = HELP_TEXT
         elif tokens[1].lower() == 'link':
-            print("Link path")
             # TODO: Wrapping the whole thing in a try-catch is a code smell
             try: 
                 link_index_album = get_direct_image_link(c, tokens)
@@ -63,7 +78,6 @@ def bot_action(c, verbose=True, respond=False):
             except IndexError:
                 response_text = 'Sorry that index is out of bounds.' + TAIL
         else:
-            print("Fall through path")
             response_text = TODO_TEXT + HELP_TEXT
     # Otherwise print the help text
     else:
@@ -71,6 +85,14 @@ def bot_action(c, verbose=True, respond=False):
     
     if respond:
         c.reply(response_text + TAIL)
+    # Add comment to DB
+
+    db_obj = {'hash': c.id, 'has_responded': True, 'response_type': response_type}
+    print(f"Hash: {db_obj['hash']}")
+    print(f"Has responded: {db_obj['has_responded']}")
+    print(f"Response type: {db_obj['response_type']}")
+    add_comment_to_db(db_obj)
+
     # Logging
     if verbose:
         tokens = c.body.encode("UTF-8").split()
@@ -129,6 +151,7 @@ def get_direct_image_link(comment, tokens):
         print(f'Image link: {image_link}')
         return {'image_link': image_link, 'index': index, 'album_link': imgur_url}
     else:  # Status code not 200
+        #TODO: Deal with status codes differently, like if imgur is down or I don't have the env configured
         print(f'Status Code: {r.status_code}')
         raise ValueError(f'Sorry, {imgur_url} is probably not an existing imgur album.')
     
@@ -174,23 +197,39 @@ def parse_imgur_url(url):
                 'image',
     }
 
+def add_comment_to_db(db_dict):
+    conn = sqlite3.connect(DB_FILE)
+    cur = conn.cursor()
+    cur.execute('INSERT OR REPLACE INTO comments VALUES (:hash, :has_responded, :response_type)', db_dict)
+    conn.commit()
+    conn.close()
+
+
 def db_setup(db_file):
+    print("Setting up DB...")
     conn = sqlite3.connect(db_file)
-    cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS comments (
-        comment_hash  TEXT    NOT NULL,
-        has_responded INTEGER DEFAULT 0 CHECK(has_responded == 0 OR has_responded == 1),
-        response_type TEXT    DEFAULT NULL
+    cur = conn.cursor()
+    cur.execute('''CREATE TABLE IF NOT EXISTS comments (
+        comment_hash  TEXT       NOT NULL  UNIQUE,
+        has_responded INTEGER    DEFAULT 0,
+        response_type TEXT       DEFAULT NULL,
+        CHECK(has_responded = 0 OR has_responded = 1)
     )''')
+    conn.commit()
+    conn.close()
+    print("Done!")
 
 if __name__ == '__main__':
     r = praw.Reddit(UA)
     load_dotenv()  # Used for imgur auth
-    db_setup('dbs/test.db')
+    # TODO: verify that the db path is valid. 
+    #   A single file is fine but dirs are not created if they don't exist
+    db_setup(DB_FILE)  # TODO: set db file path as CLI parameter
 
     for comment in r.subreddit(SUBREDDIT_NAME).stream.comments():
-        if check_condition(comment):
-            print(f"Comment hash: {comment}")  # TODO: offload this and check the comment before responding
+        print("Looking for comments...")
+        if check_batsignal(comment) and not check_has_responded(comment):
+            print(f"Comment hash: {comment}") 
             # set 'respond=True' to activate bot responses. Must be logged in.
             # TODO: Set respond bool as CLI input value
             bot_action(comment, respond=False)
