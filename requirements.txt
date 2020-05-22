@@ -1,0 +1,4 @@
+praw==7.0.0
+python-dotenv==0.13.0
+requests=2.23.0
+sqlite3==3.28.0
