@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 #References praw-ini file
 UA = 'MFAImageBot'
-DB_FILE = 'test.db'
+DB_FILE = 'mfa.db'
 BATSIGNAL = '!MFAImageBot'
 SUBREDDIT_NAME = "malefashionadvice"
 IMGUR_ALBUM_API_URL = 'https://api.imgur.com/3/album/${album_hash}/images'
@@ -74,9 +74,9 @@ def bot_action(c, verbose=True, respond=False):
                 response_text = s.substitute(index=index, image_link=image_link, album_link=album_link)
             except ValueError as e:
                 print(str(e))
-                response_text = str(e) + TAIL
+                response_text = str(e) 
             except IndexError:
-                response_text = 'Sorry that index is out of bounds.' + TAIL
+                response_text = 'Sorry that index is out of bounds.' 
         else:
             response_text = TODO_TEXT + HELP_TEXT
     # Otherwise print the help text
@@ -251,4 +251,4 @@ if __name__ == '__main__':
         if check_batsignal(comment) and not check_has_responded(comment):
             print(f"Comment hash: {comment}") 
             # TODO: Set respond bool as CLI input value
-            bot_action(comment, respond=False)
+            bot_action(comment, respond=True)
