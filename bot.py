@@ -14,7 +14,7 @@ DB_FILE = 'mfa.db'
 BATSIGNAL = '!MFAImageBot'
 SUBREDDIT_NAME = "malefashionadvice"
 IMGUR_ALBUM_API_URL = 'https://api.imgur.com/3/album/${album_hash}/images'
-IMGUR_GALLERY_API_URL = f''
+IMGUR_GALLERY_API_URL = 'https://api.imgur.com/3/gallery/album/${gallery_hash}'
 DIRECT_LINK_TEMPLATE = '[#${index}](${image_link})  \nImage number ${index} from album ${album_link}'
 
 TODO_TEXT = "Sorry, this function has not been implemented yet.\n\n"
@@ -133,31 +133,40 @@ def get_direct_image_link(comment, tokens):
 
     # This can raise an exception which is fine
     link_type_and_id = parse_imgur_url(imgur_url)
+    imgur_resource_type = link_type_and_id['type']
+    resource_id = link_type_and_id['id']
     r = None
     if link_type_and_id is not None:
-        # Each type of Imgur resource has its own endpoint: album vs gallery
-        #   so we send requests separately
-        if link_type_and_id['type'] == 'album':
+        # Galleries and Albums have different URL endpoints
+        url = ''
+        if imgur_resource_type == 'album':
             s = Template(IMGUR_ALBUM_API_URL)
-            url = s.substitute(album_hash=link_type_and_id['id'])
-            client_id = os.getenv('IMGUR_CLIENT_ID')
-            headers = {'Authorization' : f'Client-ID {client_id}'}
-            print(f"Request url: {url}")
-            r = requests.get(url, headers=headers)
-        elif link_type_and_id['type'] == 'gallery':
-            # send request to gallery endpoint
-            # TODO lol
-            raise ValueError('Sorry, imgur "galleries" are not implemented yet.')
+            url = s.substitute(album_hash=resource_id)
+        elif imgur_resource_type == 'gallery':
+            s = Template(IMGUR_GALLERY_API_URL)
+            url = s.substitute(gallery_hash=resource_id)
         else: 
             raise ValueError('Sorry, that imgur resource hasn\'t been implemented yet.')
+        
+        # Send the request
+        client_id = os.getenv('IMGUR_CLIENT_ID')
+        headers = {'Authorization' : f'Client-ID {client_id}'}
+        print(f"Request url: {url}")
+        r = requests.get(url, headers=headers)
 
-    # TODO: The structure of galleries and albums is different
-    # Gallery: g_response.data.images[index].link
-    # Album: a_response.data[index].link
+
     if r is not None and r.status_code == 200:
         # happy path for now
         r_json = r.json()
-        image_link = r_json['data'][index-1]['link']
+        image_link = ''
+        if imgur_resource_type == 'gallery':
+            # Gallery: g_response.data.images[index].link
+            image_link = r_json['data']['images'][index-1]['link']
+        elif imgur_resource_type == 'album':
+            # Album: a_response.data[index].link
+            image_link = r_json['data'][index-1]['link']
+        else:
+            raise ValueError('This should be unreachable. Please respond to this comment or open an issue so I see it.')
         print(f'Image link: {image_link}')
         return {'image_link': image_link, 'index': index, 'album_link': imgur_url}
     else:  # Status code not 200
