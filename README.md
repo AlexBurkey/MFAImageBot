@@ -1,5 +1,11 @@
 # MFAImageBot
-A bot which direct-links numbered images in an album
+A bot which direct-links numbered images in an album.
+
+Usage: 
+I respond to comments starting with `!MFAImageBot`.
+`!MFAImageBot help`: Print this help message.
+`!MFAImageBot link <album-link> <number>`: Attempts to directly link the <number> image from <album-link>
+`!MFAImageBot op <number>`: Attempts to directly link the <number> image from the album in the submission
 
 ## Resources:
 ### Imgur API Docs:
