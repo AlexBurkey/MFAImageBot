@@ -12,7 +12,9 @@ Options:
 * Small AWS EC2 instance
     * I will never ever use lambda for this. It's a nightmare to get the python libaries packaged up correctly last time I tried. Just use a damn server. 
 * Heroku: I haven't explored this just yet but from what I know it's a popular choice to host small bots like this.
+    Terrible choice. Heroku is mainly for things like webservers and has preset packages and things. It is absolutely not built to host a reddit bot.
 * RPi: This will probably be the most straight forward solution even if it's not the most stable. Unsure what the performance will look like.
+    Current choice. It's easy to access, "free", and it doens't seem like there's any performance issues with the bot or with running a pi-hole on it at the same time. 
 
 ## Environment Management
 Things to think about
@@ -23,3 +25,6 @@ Things to think about
 ## Project management
 Using even the simplest tools like TODOs in the code as you think of them is helpful. 
 You also need to think on a macro level. Larger ticket refactorings, feature additions, design choices. I like using GH issues to track them. It lives with the code, supports MD, and you can tie branches and PRs to the issues. Even for a small project like this, keeping up with making TODOs all the time and making Issues at the end of each session are really helpful at being able to pick up after a while away from the project. Also make sure you don't neglect your wiki/README like I do.
+
+## Testing
+Using GH Actions to setup some automated testing. `doctest` seems like a nice way to test some of the methods. Another option is `pytest`.
