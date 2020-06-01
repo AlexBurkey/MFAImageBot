@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 #References praw-ini file
 UA = 'MFAImageBot'
 DB_FILE = 'mfa.db'
-BATSIGNAL = '!MFAImageBot'
+BATSIGNAL = '!mfaimagebot'
 SUBREDDIT_NAME = "malefashionadvice"
 IMGUR_ALBUM_API_URL = 'https://api.imgur.com/3/album/${album_hash}/images'
 IMGUR_GALLERY_API_URL = 'https://api.imgur.com/3/gallery/album/${gallery_hash}'
@@ -30,9 +30,10 @@ TAIL = ("\n\n---\nI am a bot! If you've found a bug you can open an issue "
 
 def check_batsignal(comment):
     """
-    Returns True if the comment body starts with the batsignal '!MFAImageBot'. Otherwise False.
+    Returns True if the comment body starts with the batsignal '!mfaimagebot'. Otherwise False.
+    Case insensitive.
     """
-    text = comment.body
+    text = comment.body.lower()
     return text.startswith(BATSIGNAL)
 
 def check_has_responded(comment):
