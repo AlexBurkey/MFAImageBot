@@ -28,12 +28,25 @@ TAIL = ("\n\n---\nI am a bot! If you've found a bug you can open an issue "
         "If you have an idea for a feature, you can submit the idea "
         "[here](https://github.com/AlexBurkey/MFAImageBot/issues/new?template=feature_request.md)")
 
-def check_batsignal(comment):
+def check_batsignal(comment_body):
     """
     Returns True if the comment body starts with the batsignal '!mfaimagebot'. Otherwise False.
     Case insensitive.
+
+    >>> check_batsignal('!MFAImageBot test')
+    True
+    >>> check_batsignal('!mfaimagebot test')
+    True
+    >>> check_batsignal('!MfAiMaGeBoT test')
+    True
+    >>> check_batsignal(' !MFAImageBot test')
+    False
+    >>> check_batsignal('!Test test')
+    False
+    >>> check_batsignal('?MFAImageBot test')
+    False
     """
-    text = comment.body.lower()
+    text = comment_body.lower()
     return text.startswith(BATSIGNAL)
 
 def check_has_responded(comment):
@@ -179,6 +192,17 @@ def get_direct_image_link(comment, tokens):
 def get_index_from_string(str):
     """
     Wrap this in a try-except because I don't like the error message
+
+    >>> get_index_from_string('1')
+    1
+    >>> get_index_from_string('1.1')
+    Traceback (most recent call last):
+      ...
+    ValueError: Sorry, "1.1" doesn't look like an integer to me.
+    >>> get_index_from_string('notAnInt')
+    Traceback (most recent call last):
+      ...
+    ValueError: Sorry, "notAnInt" doesn't look like an integer to me.
     """
     index = None
     try:
@@ -259,7 +283,7 @@ if __name__ == '__main__':
     db_setup(DB_FILE)  # TODO: set db file path as CLI parameter
     print("Looking for comments...")
     for comment in r.subreddit(SUBREDDIT_NAME).stream.comments():
-        if check_batsignal(comment) and not check_has_responded(comment):
+        if check_batsignal(comment.body) and not check_has_responded(comment):
             print(f"Comment hash: {comment}") 
             # TODO: Set respond bool as CLI input value
             bot_action(comment, respond=True)
