@@ -15,6 +15,8 @@ do
     exit 1
   fi
 
-  echo "[$(date)] bot exited with code $EXIT. restarting ..."
+  echo "[$(date)] bot exited with code $EXIT."
+  echo "Current number of failures: $FAILS"
+  echo "Restarting ..."
 
 done
