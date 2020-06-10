@@ -212,7 +212,7 @@ def parse_imgur_url(url):
     >>> parse_imgur_url('Blah') is None
     Traceback (most recent call last):
       ...
-    ValueError: Sorry, "Blah" is not a valid imgur URL
+    ValueError: "Blah" is not a valid imgur URL
     """
     match = re.match(
         r'^(?i:https?://(?:[^/:]+\.)?imgur\.com)(:\d+)?'
