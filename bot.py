@@ -86,6 +86,7 @@ def bot_action(c, verbose=True, respond=False):
     
     if respond:
         c.reply(response_text + TAIL)
+        c.upvote()
 
     # Adding everything to the DB
     # TODO: Make "responded" more dependent on whether we were actually able to respond to the comment.
