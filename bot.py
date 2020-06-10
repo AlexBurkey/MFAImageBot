@@ -15,7 +15,7 @@ BATSIGNAL = '!mfaimagebot'
 SUBREDDIT_NAME = "malefashionadvice"
 IMGUR_ALBUM_API_URL = 'https://api.imgur.com/3/album/${album_hash}/images'
 IMGUR_GALLERY_API_URL = 'https://api.imgur.com/3/gallery/album/${gallery_hash}'
-DIRECT_LINK_TEMPLATE = '[#${index}](${image_link})  \nImage number ${index} from album ${album_link}'
+DIRECT_LINK_TEMPLATE = '[Direct link to image #${index}](${image_link})  \nImage number ${index} from album ${album_link}'
 
 TODO_TEXT = "Sorry, this function has not been implemented yet.\n\n"
 HELP_TEXT = ("Usage: I respond to comments starting with `!MFAImageBot`.  \n"
@@ -86,6 +86,7 @@ def bot_action(c, verbose=True, respond=False):
     
     if respond:
         c.reply(response_text + TAIL)
+        c.upvote()
 
     # Adding everything to the DB
     # TODO: Make "responded" more dependent on whether we were actually able to respond to the comment.
