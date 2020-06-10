@@ -1,3 +1,10 @@
+# My Ignored files
+.vscode
+praw.ini
+dbs/
+*.db
+*.out
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -127,9 +134,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-# My Ignored files
-.vscode
-praw.ini
-dbs/
-*.db
