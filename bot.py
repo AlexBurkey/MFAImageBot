@@ -19,10 +19,10 @@ DIRECT_LINK_TEMPLATE = '[Direct link to image #${index}](${image_link})  \nImage
 
 TODO_TEXT = "Sorry, this function has not been implemented yet.\n\n"
 HELP_TEXT = ("Usage: I respond to comments starting with `!MFAImageBot`.  \n"
-            "`!MFAImageBot help`: Print this help message.  \n"
-            "`!MFAImageBot link <album-link> <number>`: Attempts to directly link the <number> image from <album-link>  \n"
-            "`!MFAImageBot op <number>`: Attempts to directly link the <number> image from the album in the submission  \n"
-        )
+                "`!MFAImageBot help`: Print this help message.  \n"
+                "`!MFAImageBot link <album-link> <number>`: Attempts to directly link the <number> image from <album-link>  \n"
+                "`!MFAImageBot op <number>`: Attempts to directly link the <number> image from the album in the submission  \n"
+            )
 TAIL = ("\n\n---\nI am a bot! If you've found a bug you can open an issue "
         "[here.](https://github.com/AlexBurkey/MFAImageBot/issues/new?template=bug_report.md)  \n"
         "If you have an idea for a feature, you can submit the idea "
@@ -188,7 +188,7 @@ def get_direct_image_link(comment, tokens):
         print(f'Image link: {image_link}')
         return {'image_link': image_link, 'index': index, 'album_link': imgur_url}
     else:  # Status code not 200
-        #TODO: Deal with status codes differently, like if imgur is down or I don't have the env configured
+        # TODO: Deal with status codes differently, like if imgur is down or I don't have the env configured
         print(f'Status Code: {r.status_code}')
         raise ValueError(f'Sorry, {imgur_url} is probably not an existing imgur album.')
 
@@ -265,7 +265,6 @@ def add_comment_to_db(db_dict):
     cur.execute('INSERT OR REPLACE INTO comments VALUES (:hash, :has_responded, :response_type)', db_dict)
     conn.commit()
     conn.close()
-
 
 
 def db_setup(db_file):
