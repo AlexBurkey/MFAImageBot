@@ -204,15 +204,15 @@ def parse_imgur_url(url):
     >>> parse_imgur_url('http://not-imgur.com/altd8Ld.png') is None
     Traceback (most recent call last):
       ...
-    ValueError: "http://not-imgur.com/altd8Ld.png" is not a valid imgur URL
+    ValueError: Sorry, "http://not-imgur.com/altd8Ld.png" is not a valid imgur URL
     >>> parse_imgur_url('tftp://imgur.com/gallery/59npG') is None
     Traceback (most recent call last):
       ...
-    ValueError: "tftp://imgur.com/gallery/59npG" is not a valid imgur URL
+    ValueError: Sorry, "tftp://imgur.com/gallery/59npG" is not a valid imgur URL
     >>> parse_imgur_url('Blah') is None
     Traceback (most recent call last):
       ...
-    ValueError: "Blah" is not a valid imgur URL
+    ValueError: Sorry, "Blah" is not a valid imgur URL
     """
     match = re.match(
         r'^(?i:https?://(?:[^/:]+\.)?imgur\.com)(:\d+)?'
