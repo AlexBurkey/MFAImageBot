@@ -4,7 +4,6 @@ FAILS=0
 
 while true
 do
-  sleep 0.5
   python3 -u bot.py # your program
   EXIT=$?
   ((FAILS++))
@@ -18,5 +17,6 @@ do
   echo "[$(date)] bot exited with code $EXIT."
   echo "Current number of failures: $FAILS"
   echo "Restarting ..."
+  sleep 0.5m
 
 done
