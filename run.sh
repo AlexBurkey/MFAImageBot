@@ -4,7 +4,7 @@ FAILS=0
 
 while true
 do
-  python3 -u bot.py # your program
+  python3 -u bot.py prod # your program
   EXIT=$?
   ((FAILS++))
 
