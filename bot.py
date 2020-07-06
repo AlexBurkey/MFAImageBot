@@ -1,32 +1,34 @@
 #!/usr/bin/env python3
 import re
 import os
+import sys
 import praw
 import json
 import sqlite3
 import requests
 from string import Template
 from dotenv import load_dotenv
+import my_strings as ms
+
 
 # References praw-ini file
-UA = 'MFAImageBot'
-DB_FILE = 'mfa.db'
 BATSIGNAL = '!mfaimagebot'
-SUBREDDIT_NAME = "malefashionadvice"
 IMGUR_ALBUM_API_URL = 'https://api.imgur.com/3/album/${album_hash}/images'
 IMGUR_GALLERY_API_URL = 'https://api.imgur.com/3/gallery/album/${gallery_hash}'
 DIRECT_LINK_TEMPLATE = '[Direct link to image #${index}](${image_link})  \nImage number ${index} from album ${album_link}'
 
-TODO_TEXT = "Sorry, this function has not been implemented yet.\n\n"
-HELP_TEXT = ("Usage: I respond to comments starting with `!MFAImageBot`.  \n"
-             "`!MFAImageBot help`: Print this help message.  \n"
-             "`!MFAImageBot link <album-link> <number>`: Attempts to directly link the <number> image from <album-link>  \n"
-             "`!MFAImageBot op <number>`: Attempts to directly link the <number> image from the album in the submission  \n"
-             )
-TAIL = ("\n\n---\nI am a bot! If you've found a bug you can open an issue "
-        "[here.](https://github.com/AlexBurkey/MFAImageBot/issues/new?template=bug_report.md)  \n"
-        "If you have an idea for a feature, you can submit the idea "
-        "[here](https://github.com/AlexBurkey/MFAImageBot/issues/new?template=feature_request.md)")
+def run():
+    r = praw.Reddit(USER_AGENT)
+    load_dotenv()  # Used for imgur auth
+    # TODO: verify that the db path is valid.
+    #   A single file is fine but dirs are not created if they don't exist
+    db_setup(DB_FILE)  # TODO: set db file path as CLI parameter
+    print("Looking for comments...")
+    for comment in r.subreddit(SUBREDDIT_NAME).stream.comments():
+        if check_batsignal(comment.body) and not check_has_responded(comment):
+            print(f"Comment hash: {comment}")
+            # TODO: Set respond bool as CLI input value
+            bot_action(comment, respond=RESPOND)
 
 
 def check_batsignal(comment_body):
@@ -79,7 +81,7 @@ def bot_action(c, verbose=True, respond=False):
     if len(tokens) > 1:
         response_type = tokens[1].lower()
         if response_type == 'help':
-            response_text = HELP_TEXT
+            response_text = ms.HELP_TEXT
         elif response_type == 'link' or response_type == 'op':
             # TODO: Wrapping the whole thing in a try-catch is a code smell
             try:
@@ -95,13 +97,13 @@ def bot_action(c, verbose=True, respond=False):
             except IndexError:
                 response_text = 'Sorry that index is out of bounds.'
         else:
-            response_text = TODO_TEXT + HELP_TEXT
+            response_text = ms.TODO_TEXT + ms.HELP_TEXT
     # Otherwise print the help text
     else:
-        response_text = HELP_TEXT
+        response_text = ms.HELP_TEXT
 
     if respond:
-        c.reply(response_text + TAIL)
+        c.reply(response_text + ms.TAIL)
         c.upvote()
 
     # Adding everything to the DB
@@ -283,14 +285,30 @@ def db_setup(db_file):
 
 
 if __name__ == '__main__':
-    r = praw.Reddit(UA)
-    load_dotenv()  # Used for imgur auth
-    # TODO: verify that the db path is valid.
-    #   A single file is fine but dirs are not created if they don't exist
-    db_setup(DB_FILE)  # TODO: set db file path as CLI parameter
-    print("Looking for comments...")
-    for comment in r.subreddit(SUBREDDIT_NAME).stream.comments():
-        if check_batsignal(comment.body) and not check_has_responded(comment):
-            print(f"Comment hash: {comment}")
-            # TODO: Set respond bool as CLI input value
-            bot_action(comment, respond=True)
+    env = sys.argv[1]
+    USER_AGENT = ''
+    DB_FILE = ''
+    SUBREDDIT_NAME = ''
+    RESPOND = False
+    print(f"Running bot in env: {env}")
+    
+    if env == 'test':
+        USER_AGENT = 'MFAImageBotTest'
+        DB_FILE = 'test.db'
+        SUBREDDIT_NAME = 'mybottestenvironment'
+        RESPOND = False
+    elif env == 'prod':
+        USER_AGENT = ms.USER_AGENT
+        DB_FILE = ms.DB_FILE
+        SUBREDDIT_NAME = ms.SUBREDDIT_NAME
+        RESPOND = True
+    else:
+        print("Not a valid environment: test or prod.")
+        print("Exiting...")
+        sys.exit()
+    # file-scope vars are set above
+    print(f"User agent: {USER_AGENT}")
+    print(f"DB file: {DB_FILE}")
+    print(f"Subreddit name: {SUBREDDIT_NAME}")
+    print(f"Respond: {RESPOND}")
+    run()
