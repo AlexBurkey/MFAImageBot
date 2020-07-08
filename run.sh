@@ -4,7 +4,9 @@ FAILS=0
 
 while true
 do
-  python3 -u bot.py # your program
+  # your program
+  # Sends output to ./logs/bot file
+  python3 -u bot.py >> "./logs/bot/$(date +"%FT%H%M%S").out" 
   EXIT=$?
   ((FAILS++))
 
