@@ -4,7 +4,7 @@ set -x #echo on
 # print env
 pwd
 echo "~~~~~~"
-date %c
+date
 
 if [[ $(ps -e | grep run.sh) ]]; then
     echo "Bot is running"
