@@ -17,5 +17,5 @@ else
     echo "Restarting bot..."
     # Sends output of run.sh to ./logs/monitor
     # info about when and how many times the bot has crashed
-    #nohup ./run.sh >> "./logs/monitor/$(date +"%FT%H%M%S").out" &
+    nohup ./run.sh >> "./logs/monitor/$(date +"%FT%H%M%S").out" &
 fi
