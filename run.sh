@@ -6,7 +6,7 @@ while true
 do
   # your program
   # Sends output to ./logs/bot file
-  python3 -u bot.py >> "./logs/bot/$(date +"%FT%H%M%S").out" 
+  python3 -u bot.py prod >> "./logs/bot/$(date +"%FT%H%M%S").out" 
   EXIT=$?
   ((FAILS++))
 
