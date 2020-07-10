@@ -54,3 +54,34 @@ def reply_and_upvote(c, response, respond=False):
     # TODO: Make "responded" more dependent on whether we were actually able to respond to the comment.
     #   and not just what the bot is being told to do.
     return {'hash': c.id, 'has_responded': respond, 'response_text': response}
+
+
+### Unused
+def get_index_from_string(str):
+    """
+    Wrap this in a try-except because I don't like the error message
+
+    >>> get_index_from_string('1')
+    1
+    >>> get_index_from_string('1.1')
+    Traceback (most recent call last):
+      ...
+    ValueError: Sorry, "1.1" doesn't look like an integer to me.
+    >>> get_index_from_string('notAnInt')
+    Traceback (most recent call last):
+      ...
+    ValueError: Sorry, "notAnInt" doesn't look like an integer to me.
+    """
+    index = None
+    try:
+        index = int(str)
+    except ValueError:
+        raise ValueError(f'Sorry, "{str}" doesn\'t look like an integer to me.')
+    return index
+
+
+def is_number_list(string):
+    """
+    Trying to build a method to check for lists for numbers
+    """
+    match = re.match(r'^[1-9]+(,[1-9]+)*$', string)

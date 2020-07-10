@@ -183,64 +183,6 @@ def send_imgur_api_request(request_url):
     return requests.get(request_url, headers=headers)
 
 
-def bot_action(c, verbose=True, respond=False):
-    response_text = 'bot_action text'
-    response_type = None
-    # TODO: Get the first line only
-    tokens = c.body.split()
-    # If there's a command in the comment parse and react
-    # Break this out into a "parse_comment_tokens" function
-    #   Alternatively "set_response_text" or something
-    if len(tokens) > 1:
-        response_type = tokens[1].lower()
-        if response_type == 'help':
-            response_text = ms.HELP_TEXT
-        elif response_type == 'link' or response_type == 'op':
-            # TODO: Wrapping the whole thing in a try-catch is a code smell
-            try:
-                link_index_album = get_direct_image_link(c, tokens[:4])
-                image_link = link_index_album['image_link']
-                index = link_index_album['index']
-                album_link = link_index_album['album_link']
-                s = Template(DIRECT_LINK_TEMPLATE)
-                response_text = s.substitute(index=index, image_link=image_link, album_link=album_link)
-            except ValueError as e:
-                print(str(e))
-                response_text = str(e)
-            except IndexError:
-                response_text = 'Sorry that index is out of bounds.'
-        else:
-            response_text = ms.TODO_TEXT + ms.HELP_TEXT
-    # Otherwise print the help text
-    else:
-        response_text = ms.HELP_TEXT
-
-    if respond:
-        c.reply(response_text + ms.TAIL)
-        c.upvote()
-
-    # Adding everything to the DB
-    # TODO: Make "responded" more dependent on whether we were actually able to respond to the comment.
-    #   and not just what the bot is being told to do.
-    db_obj = {'hash': c.id, 'has_responded': respond, 'response_type': response_type}
-    print(f"Hash: {db_obj['hash']}")
-    print(f"Has responded: {db_obj['has_responded']}")
-    print(f"Response type: {db_obj['response_type']}")
-    add_comment_to_db(db_obj)
-
-    # Logging
-    if verbose:
-        tokens = c.body.encode("UTF-8").split()
-        # print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print("Comment Body: ")
-        print(c.body.encode("UTF-8"))
-        print(f"Tokens: {tokens}")
-        print("Response comment body: ")
-        print(response_text.encode("UTF-8"))
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-
-
-
 def get_direct_image_link(r_json, imgur_link_type, index):
     """
     Parse Imgur API request response JSON for the direct image link.
@@ -257,29 +199,6 @@ def get_direct_image_link(r_json, imgur_link_type, index):
         return r_json['data'][index-1]['link']
     else:
         raise ValueError('This should be unreachable. Please respond to this comment or open an issue so I see it.')   
-
-
-def get_index_from_string(str):
-    """
-    Wrap this in a try-except because I don't like the error message
-
-    >>> get_index_from_string('1')
-    1
-    >>> get_index_from_string('1.1')
-    Traceback (most recent call last):
-      ...
-    ValueError: Sorry, "1.1" doesn't look like an integer to me.
-    >>> get_index_from_string('notAnInt')
-    Traceback (most recent call last):
-      ...
-    ValueError: Sorry, "notAnInt" doesn't look like an integer to me.
-    """
-    index = None
-    try:
-        index = int(str)
-    except ValueError:
-        raise ValueError(f'Sorry, "{str}" doesn\'t look like an integer to me.')
-    return index
 
 
 # Lol yanked this whole thing from SE
@@ -323,33 +242,6 @@ def parse_imgur_url(url):
                 'image',
     }
 
-
-def is_number_list(string):
-    """
-    Trying to build a method to check for lists for numbers
-
-    >>> is_number_list('1,2,3')
-    True
-    >>> parse_imgur_url('HtTP://imgur.COM:80/gallery/59npG')
-    {'id': '59npG', 'type': 'gallery'}
-    >>> parse_imgur_url('https://i.imgur.com/altd8Ld.png')
-    {'id': 'altd8Ld', 'type': 'image'}
-    >>> parse_imgur_url('https://i.stack.imgur.com/ELmEk.png')
-    {'id': 'ELmEk', 'type': 'image'}
-    >>> parse_imgur_url('http://not-imgur.com/altd8Ld.png') is None
-    Traceback (most recent call last):
-      ...
-    ValueError: Sorry, "http://not-imgur.com/altd8Ld.png" is not a valid imgur URL
-    >>> parse_imgur_url('tftp://imgur.com/gallery/59npG') is None
-    Traceback (most recent call last):
-      ...
-    ValueError: Sorry, "tftp://imgur.com/gallery/59npG" is not a valid imgur URL
-    >>> parse_imgur_url('Blah') is None
-    Traceback (most recent call last):
-      ...
-    ValueError: Sorry, "Blah" is not a valid imgur URL
-    """
-    match = re.match(r'^[1-9]+(,[1-9]+)*$', string)
 
 def add_comment_to_db(db_dict):
     """
