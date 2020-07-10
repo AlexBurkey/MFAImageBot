@@ -42,6 +42,11 @@ def run():
                 continue
 
             index = parse_comment(tokens)['index']
+            if index == -1:
+                db_obj = h.reply_and_upvote(comment, response=ms.HELP_TEXT, respond=RESPOND)
+                add_comment_to_db(db_obj)
+                continue
+
             # TODO: Wrap/deal with possible exceptions from parsing imgur url
             comment_imgur_url = parse_comment(tokens)['imgur_url']
             
@@ -70,16 +75,18 @@ def run():
             r = send_imgur_api_request(request_url)
             if r is not None and r.status_code == 200:
                 response = None
+                image_link = None
                 try:
                     # Parse request and set response text
                     image_link = get_direct_image_link(r.json(), album_link_type, index)
-                    print(f'Image link: {image_link}')
                     s = Template(DIRECT_LINK_TEMPLATE)
                     response = s.substitute(index=index, image_link=image_link, album_link=album_link)
-                except IndexError as e:
+                except IndexError:
                     response = 'Sorry that index is out of bounds.'
                 db_obj = h.reply_and_upvote(comment, response=response, respond=RESPOND)
                 add_comment_to_db(db_obj)
+                print(f"Request url: {request_url}")
+                print(f'Image link: {image_link}')
                 continue 
             else:  # Status code not 200
                 # TODO: Deal with status codes differently, like if imgur is down or I don't have the env configured
@@ -87,6 +94,7 @@ def run():
                 response = f'Sorry, {album_link} is probably not an existing imgur album, or Imgur is down.'
                 db_obj = h.reply_and_upvote(comment, response=response, respond=RESPOND)
                 add_comment_to_db(db_obj)
+                print(f"Request url: {request_url}")
                 continue
 
 
@@ -172,7 +180,6 @@ def send_imgur_api_request(request_url):
     # Send the request
     client_id = os.getenv('IMGUR_CLIENT_ID')
     headers = {'Authorization': f'Client-ID {client_id}'}
-    print(f"Request url: {request_url}")
     return requests.get(request_url, headers=headers)
 
 
