@@ -16,7 +16,8 @@ import helpers as h
 BATSIGNAL = '!mfaimagebot'
 IMGUR_ALBUM_API_URL = 'https://api.imgur.com/3/album/${album_hash}/images'
 IMGUR_GALLERY_API_URL = 'https://api.imgur.com/3/gallery/album/${gallery_hash}'
-DIRECT_LINK_TEMPLATE = '[Direct link to image #${index}](${image_link})  \nImage number ${index} from album ${album_link}'
+DIRECT_LINK_TEMPLATE = '[Direct link to image #${index}](${image_link})  \n'
+DIRECT_LINK_ALBUM_TEMPLATE = 'Image(s) number ${indexes} from album ${album_link}'
 
 def run():
     r = praw.Reddit(USER_AGENT)
@@ -26,6 +27,7 @@ def run():
     print("Looking for comments...")
     for comment in r.subreddit(SUBREDDIT_NAME).stream.comments():
         if check_batsignal(comment.body) and not check_has_responded(comment):
+            print('-------------------------------------------------')
             response = ms.HELP_TEXT
             tokens = h.get_and_split_first_line(comment.body)
             # More than 100 tokens on the first line. 
@@ -34,21 +36,22 @@ def run():
                 db_obj = h.reply_and_upvote(comment, response=ms.HELP_TEXT, respond=RESPOND)
                 add_comment_to_db(db_obj)
                 continue
-
+            
+            pairs = parse_comment(tokens)
             # Check for help
-            if parse_comment(tokens)['help']:
+            if pairs['help']:
                 db_obj = h.reply_and_upvote(comment, response=ms.HELP_TEXT, respond=RESPOND)
                 add_comment_to_db(db_obj)
                 continue
 
-            index = parse_comment(tokens)['index']
-            if index == -1:
+            indexes = pairs['indexes']
+            if len(indexes) == 0:
                 db_obj = h.reply_and_upvote(comment, response=ms.HELP_TEXT, respond=RESPOND)
                 add_comment_to_db(db_obj)
                 continue
 
             # TODO: Wrap/deal with possible exceptions from parsing imgur url
-            comment_imgur_url = parse_comment(tokens)['imgur_url']
+            comment_imgur_url = pairs['imgur_url']
             
             # Check/parse imgur
             album_link_map = None
@@ -73,28 +76,30 @@ def run():
             request_url = build_request_url(album_link_type, album_link_id)
             
             r = send_imgur_api_request(request_url)
+            print(f'Status Code: {r.status_code}')
+            print(f"Request url: {request_url}")
             if r is not None and r.status_code == 200:
-                response = None
-                image_link = None
-                try:
-                    # Parse request and set response text
-                    image_link = get_direct_image_link(r.json(), album_link_type, index)
-                    s = Template(DIRECT_LINK_TEMPLATE)
-                    response = s.substitute(index=index, image_link=image_link, album_link=album_link)
-                except IndexError:
-                    response = 'Sorry that index is out of bounds.'
+                # Iterate through indexes and build response text.
+                response = ''
+                for index in indexes:
+                    image_link = None
+                    try:
+                        # Parse request and set response text
+                        image_link = get_direct_image_link(r.json(), album_link_type, index)
+                        print(f'Image link: {image_link}')
+                        s = Template(DIRECT_LINK_TEMPLATE)
+                        response += s.substitute(index=index, image_link=image_link, album_link=album_link)
+                    except IndexError:
+                        response += f'Sorry {index} is out of bounds.\n'
+                response += f'Image(s) numbered {indexes} from album {album_link}'
                 db_obj = h.reply_and_upvote(comment, response=response, respond=RESPOND)
                 add_comment_to_db(db_obj)
-                print(f"Request url: {request_url}")
-                print(f'Image link: {image_link}')
                 continue 
             else:  # Status code not 200
                 # TODO: Deal with status codes differently, like if imgur is down or I don't have the env configured
-                print(f'Status Code: {r.status_code}')
                 response = f'Sorry, {album_link} is probably not an existing imgur album, or Imgur is down.'
                 db_obj = h.reply_and_upvote(comment, response=response, respond=RESPOND)
                 add_comment_to_db(db_obj)
-                print(f"Request url: {request_url}")
                 continue
 
 
@@ -139,7 +144,12 @@ def check_has_responded(comment):
 
 
 def parse_comment(tokens):
-    pairs = {'index': -1, 'imgur_url': None, 'help': False}
+    """
+    Expected input: one line split on whitespace
+    Behavior: Parse each token and look for 'help', integers, and an imgur url.
+    Returns: dictionary containing whether 'help' was specified, the list of integers, and imgur URL
+    """
+    pairs = {'indexes': [], 'imgur_url': None, 'help': False}
     # Find the numbers in the tokens
     for s in tokens:
         # Look for help
@@ -148,7 +158,7 @@ def parse_comment(tokens):
             break
         # Find the numbers in the tokens
         if h.isInt(s):
-            pairs['index'] = int(s)
+            pairs['indexes'].append(int(s))
         # Find imgur URL in the tokens
         if h.is_imgur_url(s):
             pairs['imgur_url'] = s
