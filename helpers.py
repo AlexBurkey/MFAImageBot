@@ -32,7 +32,7 @@ def get_and_split_first_line(string):
 
     TODO: doctests
     """
-    return string.splitlines()[0].split()
+    return string.splitlines()[0].replace(",", " ").split()
 
 def reply_and_upvote(c, response, respond=False):
     """
@@ -40,7 +40,6 @@ def reply_and_upvote(c, response, respond=False):
 
     Returns DB Object. This is a bad idea
     """
-    print('-------------------------------------------------')
     if respond:
         print(f'Responding to comment{c.permalink}')
         c.reply(response + my_strings.TAIL)
