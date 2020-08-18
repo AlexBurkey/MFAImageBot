@@ -14,4 +14,4 @@ TAIL = ("\n\n---\nI am a bot! If you've found a bug you can open an issue "
         "[here.](https://github.com/AlexBurkey/MFAImageBot/issues/new?template=bug_report.md)  \n"
         "If you have an idea for a feature, you can submit the idea "
         "[here](https://github.com/AlexBurkey/MFAImageBot/issues/new?template=feature_request.md)  \n"
-        "Version 1.1")
+        "Version 1.2")
