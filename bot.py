@@ -236,14 +236,14 @@ def parse_imgur_url(url):
     Extract the type and id from an Imgur URL.
 
     >>> parse_imgur_url("http://imgur.com/a/cjh4E")
-    {"id": "cjh4E", "type": "album"}
+    {'id': 'cjh4E', 'type': 'album'}
     >>> parse_imgur_url("HtTP://imgur.COM:80/gallery/59npG")
-    {"id": "59npG", "type": "gallery"}
+    {'id': '59npG', 'type': 'gallery'}
     >>> parse_imgur_url("https://i.imgur.com/altd8Ld.png")
-    {"id": "altd8Ld", "type": "image"}
-    >>> parse_imgur_url("https://i.stack.imgur.com/ELmEk.png")
-    {"id": "ELmEk", "type": "image"}
-    >>> parse_imgur_url("http://not-imgur.com/altd8Ld.png") is None
+    {'id': 'altd8Ld', 'type': 'image'}
+    >>> parse_imgur_url('https://i.stack.imgur.com/ELmEk.png')
+    {'id': 'ELmEk', 'type': 'image'}
+    >>> parse_imgur_url('http://not-imgur.com/altd8Ld.png') is None
     Traceback (most recent call last):
       ...
     ValueError: Sorry, "http://not-imgur.com/altd8Ld.png" is not a valid imgur URL
