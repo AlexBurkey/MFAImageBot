@@ -8,7 +8,7 @@ import sqlite3
 import requests
 from string import Template
 from dotenv import load_dotenv
-import my_strings as ms
+import string_constants as strings
 import helpers as h
 
 
@@ -28,25 +28,25 @@ def run():
     for comment in r.subreddit(SUBREDDIT_NAME).stream.comments():
         if check_batsignal(comment.body) and not check_has_responded(comment):
             print('-------------------------------------------------')
-            response = ms.HELP_TEXT
+            response = strings.HELP_TEXT
             tokens = h.get_and_split_first_line(comment.body)
             # More than 100 tokens on the first line. 
             # I'm not dealing with that
             if len(tokens) > 100:
-                db_obj = h.reply_and_upvote(comment, response=ms.HELP_TEXT, respond=RESPOND)
+                db_obj = h.reply_and_upvote(comment, response=strings.HELP_TEXT, respond=RESPOND)
                 add_comment_to_db(db_obj)
                 continue
             
             pairs = parse_comment(tokens)
             # Check for help
             if pairs['help']:
-                db_obj = h.reply_and_upvote(comment, response=ms.HELP_TEXT, respond=RESPOND)
+                db_obj = h.reply_and_upvote(comment, response=strings.HELP_TEXT, respond=RESPOND)
                 add_comment_to_db(db_obj)
                 continue
 
             indexes = pairs['indexes']
             if len(indexes) == 0:
-                db_obj = h.reply_and_upvote(comment, response=ms.HELP_TEXT, respond=RESPOND)
+                db_obj = h.reply_and_upvote(comment, response=strings.HELP_TEXT, respond=RESPOND)
                 add_comment_to_db(db_obj)
                 continue
 
@@ -298,9 +298,9 @@ if __name__ == '__main__':
         SUBREDDIT_NAME = 'mybottestenvironment'
         RESPOND = False
     elif env == 'prod':
-        USER_AGENT = ms.USER_AGENT
-        DB_FILE = ms.DB_FILE
-        SUBREDDIT_NAME = ms.SUBREDDIT_NAME
+        USER_AGENT = strings.USER_AGENT
+        DB_FILE = strings.DB_FILE
+        SUBREDDIT_NAME = strings.SUBREDDIT_NAME
         RESPOND = True
     else:
         print("Not a valid environment: test or prod.")
