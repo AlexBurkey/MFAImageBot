@@ -19,6 +19,7 @@ IMGUR_GALLERY_API_URL = "https://api.imgur.com/3/gallery/album/${gallery_hash}"
 DIRECT_LINK_TEMPLATE = "[Direct link to image #${index}](${image_link})  \n"
 DIRECT_LINK_ALBUM_TEMPLATE = "Image(s) number ${indexes} from album ${album_link}"
 
+
 def run():
     r = praw.Reddit(USER_AGENT)
     load_dotenv()  # Used for imgur auth
@@ -30,7 +31,7 @@ def run():
             print("-------------------------------------------------")
             response = constants.HELP_TEXT
             tokens = h.get_and_split_first_line(comment.body)
-            # More than 100 tokens on the first line. 
+            # More than 100 tokens on the first line.
             # I'm not dealing with that
             if len(tokens) > 100:
                 db_obj = h.reply_and_upvote(
@@ -38,7 +39,7 @@ def run():
                 )
                 add_comment_to_db(db_obj)
                 continue
-            
+
             pairs = parse_comment(tokens)
             # Check for help
             if pairs["help"]:
@@ -58,7 +59,7 @@ def run():
 
             # TODO: Wrap/deal with possible exceptions from parsing imgur url
             comment_imgur_url = pairs["imgur_url"]
-            
+
             # Check/parse imgur
             album_link_map = None
             album_link = None
@@ -76,9 +77,9 @@ def run():
                 db_obj = h.reply_and_upvote(comment, response=response, respond=RESPOND)
                 add_comment_to_db(db_obj)
                 continue
-            
+
             album_link_type = album_link_map["type"]
-            album_link_id   = album_link_map["id"]
+            album_link_id = album_link_map["id"]
 
             # TODO: Wrap in try/except
             request_url = build_request_url(album_link_type, album_link_id)
@@ -151,7 +152,7 @@ def check_has_responded(comment):
     cur = conn.cursor()
     cur.execute(
         "SELECT * FROM comments WHERE comment_hash=:hash AND has_responded=1",
-        {"hash": comment.id}
+        {"hash": comment.id},
     )
     val = cur.fetchone() is not None
     conn.close()
@@ -194,7 +195,7 @@ def build_request_url(imgur_link_type, imgur_link_id):
         s = Template(IMGUR_GALLERY_API_URL)
         return s.substitute(gallery_hash=imgur_link_id)
     else:
-        raise ValueError("Sorry, that imgur resource hasn\'t been implemented yet.")
+        raise ValueError("Sorry, that imgur resource hasn't been implemented yet.")
 
 
 def send_imgur_api_request(request_url):
@@ -225,7 +226,7 @@ def get_direct_image_link(r_json, imgur_link_type, index):
     else:
         raise ValueError(
             "This should be unreachable. Please respond to this comment or open an issue so I see it."
-        )   
+        )
 
 
 # Lol yanked this whole thing from SE
@@ -258,7 +259,7 @@ def parse_imgur_url(url):
     match = re.match(
         r"^(?i:https?://(?:[^/:]+\.)?imgur\.com)(:\d+)?"
         r"/(?:(?P<album>a/)|(?P<gallery>gallery/))?(?P<id>\w+)",
-        url
+        url,
     )
     if not match:
         raise ValueError('Sorry, "{}" is not a valid imgur URL'.format(url))
@@ -285,7 +286,7 @@ def add_comment_to_db(db_dict):
     # https://stackoverflow.com/questions/19337029/insert-if-not-exists-statement-in-sqlite
     cur.execute(
         "INSERT OR REPLACE INTO comments VALUES (:hash, :has_responded, :response_text)",
-        db_dict
+        db_dict,
     )
     conn.commit()
     conn.close()
@@ -315,7 +316,7 @@ if __name__ == "__main__":
     SUBREDDIT_NAME = ""
     RESPOND = False
     print(f"Running bot in env: {env}")
-    
+
     if env == "test":
         USER_AGENT = "MFAImageBotTest"
         DB_FILE = "test.db"

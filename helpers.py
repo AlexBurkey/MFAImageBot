@@ -26,6 +26,7 @@ def is_imgur_url(s):
         s
     )
 
+
 def get_and_split_first_line(string):
     """
     Given a string return a list of the tokens in the first line.
@@ -47,7 +48,7 @@ def reply_and_upvote(c, response, respond=False):
         c.upvote()
     else:
         print(f"Not responding to comment {c.permalink}")
-    
+
     print("Comment text: ")
     print(f"{c.body}")
     # Adding everything to the DB
@@ -56,7 +57,7 @@ def reply_and_upvote(c, response, respond=False):
     return {"hash": c.id, "has_responded": respond, "response_text": response}
 
 
-### Unused
+# Unused
 def get_index_from_string(str):
     """
     Wrap this in a try-except because I don't like the error message
@@ -76,7 +77,7 @@ def get_index_from_string(str):
     try:
         index = int(str)
     except ValueError:
-        raise ValueError(f"Sorry, "{str}" doesn\'t look like an integer to me.")
+        raise ValueError(f"Sorry, \"{str}\" doesn\'t look like an integer to me.")
     return index
 
 
@@ -85,4 +86,3 @@ def is_number_list(string):
     Trying to build a method to check for lists for numbers
     """
     match = re.match(r"^[1-9]+(,[1-9]+)*$", string)
-    
