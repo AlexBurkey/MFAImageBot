@@ -1,6 +1,7 @@
 import re
 import constants
 
+
 def isInt(s):
     """
     Helper function to see if a string is an int.
@@ -23,7 +24,7 @@ def is_imgur_url(s):
     return re.match(
         r"^(?i:https?://(?:[^/:]+\.)?imgur\.com)(:\d+)?"
         r"/(?:(?P<album>a/)|(?P<gallery>gallery/))?(?P<id>\w+)",
-        s
+        s,
     )
 
 
@@ -77,12 +78,6 @@ def get_index_from_string(str):
     try:
         index = int(str)
     except ValueError:
-        raise ValueError(f"Sorry, \"{str}\" doesn\'t look like an integer to me.")
+        raise ValueError(f'Sorry, "{str}" doesn\'t look like an integer to me.')
     return index
 
-
-def is_number_list(string):
-    """
-    Trying to build a method to check for lists for numbers
-    """
-    match = re.match(r"^[1-9]+(,[1-9]+)*$", string)

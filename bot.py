@@ -2,12 +2,11 @@
 import re
 import os
 import sys
-import praw
-import json
+import praw  # pylint: disable=import-error
 import sqlite3
-import requests
+import requests  # pylint: disable=import-error
 from string import Template
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # pylint: disable=import-error
 import constants as constants
 import helpers as h
 
