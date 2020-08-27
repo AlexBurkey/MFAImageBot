@@ -1,5 +1,5 @@
 import re
-import constants
+import my_strings
 
 
 def isInt(s):
@@ -45,7 +45,7 @@ def reply_and_upvote(c, response, respond=False):
     """
     if respond:
         print(f"Responding to comment{c.permalink}")
-        c.reply(response + constants.TAIL)
+        c.reply(response + my_strings.TAIL)
         c.upvote()
     else:
         print(f"Not responding to comment {c.permalink}")
