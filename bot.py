@@ -139,7 +139,7 @@ def check_batsignal(comment_body):
 
 def check_has_responded(comment):
     """
-    Returns True if the comment hash is in the database and we"ve already responded to it. Otherwise False.
+    Returns True if the comment hash is in the database and we've already responded to it. Otherwise False.
 
     fetchone() is not None --> a row exists
     a row exists iff hash is in DB AND we have responded to it.
