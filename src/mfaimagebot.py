@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-import re
 import os
-import sys
-import praw  # pylint: disable=import-error
+import re
 import sqlite3
-import requests  # pylint: disable=import-error
+import sys
 from string import Template
-from dotenv import load_dotenv  # pylint: disable=import-error
-import my_strings as ms
-import helpers as h
 
+import helpers as h
+import my_strings as ms
+import praw  # pylint: disable=import-error
+import requests  # pylint: disable=import-error
+from dotenv import load_dotenv  # pylint: disable=import-error
 
 # References praw-ini file
 BATSIGNAL = "!mfaimagebot"
