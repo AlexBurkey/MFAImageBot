@@ -32,4 +32,5 @@ jobs:
         pip install -r requirements.txt
     - name: Test with doctest
       run: |
-        python -m doctest -v bot.py
+        pwd
+        python -m doctest -v mfaimagebot.py
