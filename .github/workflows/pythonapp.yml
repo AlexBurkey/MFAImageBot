@@ -23,6 +23,7 @@ jobs:
     - name: Install dependencies
       run: |
         pwd
+        ls -al
         mkdir target
         sh ./deploy.sh
         cd target
