@@ -7,9 +7,9 @@ I respond to comments starting with `!MFAImageBot`.
 `!MFAImageBot link <album-link> <number>`: Attempts to directly link the <number> image from <album-link>  
 `!MFAImageBot op <number>`: Attempts to directly link the <number> image from the album in the submission  
 
-## Resources:
-### Imgur API Docs:
-https://apidocs.imgur.com/?version=latest#3606f862-8281-48f1-b0f7-49a5f77da0e1
+## Resources
+### Imgur API Docs
+[link](https://apidocs.imgur.com/?version=latest#3606f862-8281-48f1-b0f7-49a5f77da0e1)
 
 ### PRAW Docs
-https://praw.readthedocs.io/en/latest/
+[link](https://praw.readthedocs.io/en/latest/)
