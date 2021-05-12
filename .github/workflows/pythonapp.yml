@@ -24,6 +24,8 @@ jobs:
       run: |
         pwd
         ls -al
+        ls -al src/
+        ls -al scripts/
         mkdir target
         sh ./deploy.sh
         cd target
