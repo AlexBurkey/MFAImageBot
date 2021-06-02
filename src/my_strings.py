@@ -16,5 +16,5 @@ TAIL = (
     "[here.](https://github.com/AlexBurkey/MFAImageBot/issues/new?template=bug_report.md)  \n"
     "If you have an idea for a feature, you can submit the idea "
     "[here](https://github.com/AlexBurkey/MFAImageBot/issues/new?template=feature_request.md)  \n"
-    "Version 1.2"
+    "Version 1.3"
 )
