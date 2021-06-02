@@ -12,7 +12,7 @@ import requests  # pylint: disable=import-error
 from dotenv import load_dotenv  # pylint: disable=import-error
 
 # References praw-ini file
-BATSIGNAL = "!mfaimagebot"
+BATSIGNALS = ("!mfaimagebot", "!mfaib", "!mfa", "!imagebot", "!ibot")
 IMGUR_ALBUM_API_URL = "https://api.imgur.com/3/album/${album_hash}/images"
 IMGUR_GALLERY_API_URL = "https://api.imgur.com/3/gallery/album/${gallery_hash}"
 DIRECT_LINK_TEMPLATE = "[Direct link to image #${index}](${image_link})  \n"
@@ -126,6 +126,14 @@ def check_batsignal(comment_body):
     True
     >>> check_batsignal("!MfAiMaGeBoT test")
     True
+    >>> check_batsignal("!mfaib test")
+    True
+    >>> check_batsignal("!mfa test")
+    True
+    >>> check_batsignal("!imagebot test")
+    True
+    >>> check_batsignal("!ibot test")
+    True
     >>> check_batsignal(" !MFAImageBot test")
     False
     >>> check_batsignal("!Test test")
@@ -134,7 +142,7 @@ def check_batsignal(comment_body):
     False
     """
     text = comment_body.lower()
-    return text.startswith(BATSIGNAL)
+    return text.startswith(BATSIGNALS)
 
 
 def check_has_responded(comment):
