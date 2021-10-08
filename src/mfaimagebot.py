@@ -5,11 +5,12 @@ import sqlite3
 import sys
 from string import Template
 
-import helpers as h
-import my_strings as ms
 import praw  # pylint: disable=import-error
 import requests  # pylint: disable=import-error
 from dotenv import load_dotenv  # pylint: disable=import-error
+
+from . import helpers as h
+from . import my_strings as ms
 
 # References praw-ini file
 BATSIGNALS = ("!mfaimagebot", "!mfaib", "!mfa", "!imagebot", "!ibot")
@@ -119,27 +120,6 @@ def check_batsignal(comment_body):
     """
     Returns True if the comment body starts with the batsignal "!mfaimagebot". Otherwise False.
     Case insensitive.
-
-    >>> check_batsignal("!MFAImageBot test")
-    True
-    >>> check_batsignal("!mfaimagebot test")
-    True
-    >>> check_batsignal("!MfAiMaGeBoT test")
-    True
-    >>> check_batsignal("!mfaib test")
-    True
-    >>> check_batsignal("!mfa test")
-    True
-    >>> check_batsignal("!imagebot test")
-    True
-    >>> check_batsignal("!ibot test")
-    True
-    >>> check_batsignal(" !MFAImageBot test")
-    False
-    >>> check_batsignal("!Test test")
-    False
-    >>> check_batsignal("?MFAImageBot test")
-    False
     """
     text = comment_body.lower()
     return text.startswith(BATSIGNALS)
@@ -241,27 +221,6 @@ def get_direct_image_link(r_json, imgur_link_type, index):
 def parse_imgur_url(url):
     """
     Extract the type and id from an Imgur URL.
-
-    >>> parse_imgur_url("http://imgur.com/a/cjh4E")
-    {'id': 'cjh4E', 'type': 'album'}
-    >>> parse_imgur_url("HtTP://imgur.COM:80/gallery/59npG")
-    {'id': '59npG', 'type': 'gallery'}
-    >>> parse_imgur_url("https://i.imgur.com/altd8Ld.png")
-    {'id': 'altd8Ld', 'type': 'image'}
-    >>> parse_imgur_url('https://i.stack.imgur.com/ELmEk.png')
-    {'id': 'ELmEk', 'type': 'image'}
-    >>> parse_imgur_url('http://not-imgur.com/altd8Ld.png') is None
-    Traceback (most recent call last):
-      ...
-    ValueError: Sorry, "http://not-imgur.com/altd8Ld.png" is not a valid imgur URL
-    >>> parse_imgur_url("tftp://imgur.com/gallery/59npG") is None
-    Traceback (most recent call last):
-      ...
-    ValueError: Sorry, "tftp://imgur.com/gallery/59npG" is not a valid imgur URL
-    >>> parse_imgur_url("Blah") is None
-    Traceback (most recent call last):
-      ...
-    ValueError: Sorry, "Blah" is not a valid imgur URL
     """
     match = re.match(
         r"^(?i:https?://(?:[^/:]+\.)?imgur\.com)(:\d+)?"
