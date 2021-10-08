@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-from dotenv import load_dotenv  # pylint: disable=import-error
 import os
-import praw  # pylint: disable=import-error
 import re
-import requests  # pylint: disable=import-error
 import sqlite3
 import sys
 from string import Template
+
+import praw  # pylint: disable=import-error
+import requests  # pylint: disable=import-error
+from dotenv import load_dotenv  # pylint: disable=import-error
 
 from . import helpers as h
 from . import my_strings as ms
