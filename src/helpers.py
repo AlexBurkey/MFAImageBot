@@ -1,6 +1,6 @@
 import re
 
-import my_strings
+from . import my_strings
 
 
 def isInt(s):
