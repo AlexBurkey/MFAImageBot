@@ -1,5 +1,7 @@
-from src import mfaimagebot
 import unittest
+
+from src import mfaimagebot
+
 
 class TestMFAImageBot(unittest.TestCase):
     def test_check_batsignal(self):
@@ -16,17 +18,29 @@ class TestMFAImageBot(unittest.TestCase):
         self.assertFalse(mfaimagebot.check_batsignal("?MFAImageBot test"))
 
     def test_parse_imgur_url(self):
-        self.assertEqual(mfaimagebot.parse_imgur_url("http://imgur.com/a/cjh4E"), {'id': 'cjh4E', 'type': 'album'})
-        self.assertEqual(mfaimagebot.parse_imgur_url("HtTP://imgur.COM:80/gallery/59npG"), {'id': '59npG', 'type': 'gallery'})
-        self.assertEqual(mfaimagebot.parse_imgur_url("https://i.imgur.com/altd8Ld.png"), {'id': 'altd8Ld', 'type': 'image'})
-        self.assertEqual(mfaimagebot.parse_imgur_url('https://i.stack.imgur.com/ELmEk.png'), {'id': 'ELmEk', 'type': 'image'})
+        self.assertEqual(
+            mfaimagebot.parse_imgur_url("http://imgur.com/a/cjh4E"), 
+            {'id': 'cjh4E', 'type': 'album'},
+        )
+        self.assertEqual(
+            mfaimagebot.parse_imgur_url("HtTP://imgur.COM:80/gallery/59npG"), 
+            {'id': '59npG', 'type': 'gallery'},
+        )
+        self.assertEqual(
+            mfaimagebot.parse_imgur_url("https://i.imgur.com/altd8Ld.png"), 
+            {'id': 'altd8Ld', 'type': 'image'},
+        )
+        self.assertEqual(
+            mfaimagebot.parse_imgur_url('https://i.stack.imgur.com/ELmEk.png'), 
+            {'id': 'ELmEk', 'type': 'image'},
+        )
 
     def test_parse_imgur_url_exceptions(self):
-        with self.assertRaises(ValueError, msg="Sorry, \"http://not-imgur.com/altd8Ld.png\" is not a valid imgur URL"):
+        with self.assertRaisesRegex(ValueError, "not-imgur.com"):
             mfaimagebot.parse_imgur_url('http://not-imgur.com/altd8Ld.png')
-        with self.assertRaises(ValueError, msg="Sorry, \"tftp://imgur.com/gallery/59npG\" is not a valid imgur URL"):
+        with self.assertRaisesRegex(ValueError, "tftp://imgur.com"):
             mfaimagebot.parse_imgur_url("tftp://imgur.com/gallery/59npG")
-        with self.assertRaises(ValueError, msg="Sorry, \"Blah\" is not a valid imgur URL"):
+        with self.assertRaisesRegex(ValueError, "Blah"):
             mfaimagebot.parse_imgur_url("Blah")
 
 
