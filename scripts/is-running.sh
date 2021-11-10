@@ -13,5 +13,5 @@ if [[ ! $(pgrep run-mfaimage.sh) ]]; then
     echo "Restarting bot..."
     # Sends output of run.sh to ./logs/monitor
     # info about when and how many times the bot has crashed
-    nohup ./run-mfaimage.sh >> "../logs/monitor/$(date +"%FT%H%M%S").out" &
+    nohup ./target/run-mfaimage.sh >> "./logs/monitor/$(date +"%FT%H%M%S").out" &
 fi
